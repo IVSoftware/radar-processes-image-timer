@@ -8,7 +8,7 @@ namespace radar
 {
     public partial class MainForm : Form
     {
-#if DEBUG
+#if false && DEBUG
         TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(10);
 #else
         TimeSpan UpdateInterval { get; } = TimeSpan.FromMinutes(5);
@@ -20,6 +20,7 @@ namespace radar
             {
                 Location = lblNextTimeDownload.Location,
                 Size = lblNextTimeDownload.Size,
+                Dock = DockStyle.Top,
                 Value = 0,
             };
         }
