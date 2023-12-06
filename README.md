@@ -2,7 +2,7 @@
 
 I tried to reproduce the "jumping around" by running your code and in the process of doing that immediately saw that Fildor's observation is spot on. The `Radar` class has no business messing with the UI. It is (or should be) a stateful provider of the service: asynchronous downloading and processing of a set of images/links. 
 
-The client of this service is `MainForm`. It might make better sense as the owner of the progress and countdown UI elements for it to be the one keeping track of the interval and calling `Radar.ExecuteAsync()`. Starting and stopping a timer is another thing that can be bad for business. Please don't use a timer. One alternate approach is an async loop that, depending on `Radar.State` will either show and update a countdown label _or_ show and update a progress bar. With this approach, `MainForm` only needs to know _when_ `Radar.State` or (if the state is 'not' `RadarState.Waiting`) `Radar.Progress` change.  Both of these can be cleanly supplied using `INotifyPropertyChanged`.
+The client of this service is `MainForm`. It might make better sense as the owner of the progress and countdown UI elements for it to be the one keeping track of the interval and calling `Radar.ExecuteAsync()`. Starting and stopping a timer is another thing that can be bad for business. Please don't use a timer. One alternate approach is an async loop that, depending on `Radar.State` will either show and update a countdown label _or_ show and update a progress bar. With this approach, `MainForm` only needs to know _when_ `Radar.State` or `Radar.Progress` change which is a function of implementing `INotifyPropertyChanged` in the `Radar` class.
 
 ___
 **Main Form**
@@ -69,9 +69,6 @@ Subscribe to PropertyChanged notifications
                     // Update the title bar
                     if (!Disposing) BeginInvoke(() => Text = $"Radar - {_radar.State}");
                     break;
-            }
-            switch (e.PropertyName)
-            {
                 case nameof(_radar.Progress):
                     // Update the progress bar
                     if (!Disposing) BeginInvoke(() => _downloadProgress.Value = _radar.Progress);
@@ -228,6 +225,10 @@ public class Radar : INotifyPropertyChanged
             // Notify completion
             State = RadarState.DownloadCompleted;
         }
+        // Ensure Progress has gone to the end, and
+        // allow time to view the result.
+        Progress = 100;
+        await Task.Delay(TimeSpan.FromSeconds(1.5));
     }
 
     private async Task ProcessDownloadedImagesAsync()
@@ -272,7 +273,11 @@ public class Radar : INotifyPropertyChanged
                 }
                 Progress = (int)(i/(Links.Count * 0.01));
             }
-        });
+        });            
+        // Ensure Progress has gone to the end, and
+        // allow time to view the result.
+        Progress = 100;
+        await Task.Delay(TimeSpan.FromSeconds(1.5));
     }
 }
 ```

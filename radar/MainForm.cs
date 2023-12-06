@@ -8,7 +8,7 @@ namespace radar
 {
     public partial class MainForm : Form
     {
-#if false && DEBUG
+#if DEBUG
         // Faster turnaround for debugging purposes.
         TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(10);
 #else
@@ -32,7 +32,8 @@ namespace radar
         {
             while (!Disposing)
             {
-                TimeSpan countdown = _nextDownloadTime - DateTime.Now + TimeSpan.FromSeconds(0.99);
+                TimeSpan countdown = 
+                    (_nextDownloadTime - DateTime.Now) + TimeSpan.FromSeconds(0.99);
                 if (countdown <= TimeSpan.FromSeconds(0.99))
                 {
                     lblNextTimeDownload.Visible = false;
@@ -211,12 +212,12 @@ namespace radar
                         Progress = (int)((double)completedFiles / totalFiles * 100);
                     }
                 }
-                // Notify completion
-                State = RadarState.DownloadCompleted;
             }
             // Ensure Progress has gone to the end, and
             // allow time to view the result.
             Progress = 100;
+            // Notify completion
+            State = RadarState.DownloadCompleted;
             await Task.Delay(TimeSpan.FromSeconds(1.5));
         }
 
