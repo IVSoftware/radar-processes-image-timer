@@ -8,7 +8,7 @@ namespace radar
 {
     public partial class MainForm : Form
     {
-#if DEBUG
+#if false && DEBUG
         // Faster turnaround for debugging purposes.
         TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(10);
 #else
@@ -46,7 +46,9 @@ namespace radar
                     lblNextTimeDownload.Visible = true;
                     _downloadProgress.Visible = false;
                     lblNextTimeDownload.Text = "Next download in: " + countdown.ToString(@"mm\:ss");
-                    await Task.Delay(500);
+                    // This resolution should prevent any erratic intervals
+                    // as the 'new' second will get picked up right away.
+                    await Task.Delay(100);
                 }
             }
         }
