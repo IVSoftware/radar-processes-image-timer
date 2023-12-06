@@ -65,9 +65,6 @@ namespace radar
                         // Update the title bar
                         if (!Disposing) BeginInvoke(() => Text = $"Radar - {_radar.State}");
                         break;
-                }
-                switch (e.PropertyName)
-                {
                     case nameof(_radar.Progress):
                         // Update the progress bar
                         if (!Disposing) BeginInvoke(() => _downloadProgress.Value = _radar.Progress);
