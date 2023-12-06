@@ -26,7 +26,9 @@ public partial class MainForm : Form
         };
     }
     readonly ProgressBar _downloadProgress;    
-
+```
+Async loop to update countdown
+```
     DateTime _nextDownloadTime = DateTime.Now;
     private async Task updateLabelAsync()
     {
@@ -54,6 +56,9 @@ public partial class MainForm : Form
             }
         }
     }
+```
+Subscribe to PropertyChanged notifications
+```
     protected override void OnLoad(EventArgs e)
     {
         base.OnLoad(e);
@@ -256,12 +261,12 @@ public class Radar : INotifyPropertyChanged
                     // No files exist in this mock setting, so 
                     // exercise the state to make sure things work,
                     State = RadarState.ImageProcessing;
-                    // Mock the downloaded image
-                    await Task.Delay(10);
+                    // Mock the image processing time
+                    await Task.Delay(50);
 
                     // Signal that the image has been processed
                     State = RadarState.ImageProcessed;
-                    await Task.Delay(10);
+                    await Task.Delay(50);
 #endif
 
 
