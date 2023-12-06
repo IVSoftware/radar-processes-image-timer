@@ -216,6 +216,8 @@ namespace radar
             // Ensure Progress has gone to the end, and
             // allow time to view the result.
             Progress = 100;
+            // Helps synchronize the "Download COmpleted" text with the progress bar.
+            await Task.Delay(TimeSpan.FromSeconds(0.5));
             // Notify completion
             State = RadarState.DownloadCompleted;
             await Task.Delay(TimeSpan.FromSeconds(1.5));
