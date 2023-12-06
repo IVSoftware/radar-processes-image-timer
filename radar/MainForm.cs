@@ -24,6 +24,31 @@ namespace radar
                 Value = 0,
             };
         }
+        readonly ProgressBar _downloadProgress;
+
+        DateTime _nextDownloadTime = DateTime.Now;
+        private async Task updateLabelAsync()
+        {
+            while (!Disposing)
+            {
+                TimeSpan countdown = _nextDownloadTime - DateTime.Now + TimeSpan.FromSeconds(0.99);
+                if (countdown <= TimeSpan.FromSeconds(0.99))
+                {
+                    lblNextTimeDownload.Visible = false;
+                    _downloadProgress.Visible = true;
+                    await _radar.ExececuteAsync();
+                    Debug.Assert(_radar.State == RadarState.Waiting, "Expecting Radar to reset its state.");
+                    _nextDownloadTime = DateTime.Now + UpdateInterval;
+                }
+                else
+                {
+                    lblNextTimeDownload.Visible = true;
+                    _downloadProgress.Visible = false;
+                    lblNextTimeDownload.Text = "Next download in: " + countdown.ToString(@"mm\:ss");
+                    await Task.Delay(500);
+                }
+            }
+        }
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -53,34 +78,6 @@ namespace radar
                 await task;
                 task.Dispose();
             };
-        }
-        readonly ProgressBar _downloadProgress;
-
-        DateTime _nextDownloadTime = DateTime.Now;
-        private async Task updateLabelAsync()
-        {
-            while (!Disposing)
-            {
-                if (_radar.State == RadarState.Waiting)
-                {
-                    TimeSpan countdown = _nextDownloadTime - DateTime.Now + TimeSpan.FromSeconds(0.99);
-                    if (countdown <= TimeSpan.FromSeconds(0.99))
-                    {
-                        lblNextTimeDownload.Visible = false;
-                        _downloadProgress.Visible = true;
-                        await _radar.ExececuteAsync();
-                        Debug.Assert(_radar.State == RadarState.Waiting, "Expecting Radar to reset its state.");
-                        _nextDownloadTime = DateTime.Now + UpdateInterval;
-                    }
-                    else
-                    {
-                        lblNextTimeDownload.Visible = true;
-                        _downloadProgress.Visible = false;
-                        lblNextTimeDownload.Text = "Next download in: " + countdown.ToString(@"mm\:ss");
-                        await Task.Delay(500);
-                    }
-                }
-            }
         }
         Radar _radar = new Radar(Path.Combine
         (
