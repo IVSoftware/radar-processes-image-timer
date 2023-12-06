@@ -1,11 +1,15 @@
-# Radar Process Images Timer
+## Radar Process Images Timer
 
-I tried to reproduce the "jumping around" by running your code. But just in the process of making it "runnable" I immediately saw that Fildor's observation is spot on. The `Radar` class has no business messing with the UI. It is (or should be) a stateful provider of a service: the asynchronous downloading and processing a set of images/links. 
+I tried to reproduce the "jumping around" by running your code and in the process of doing that immediately saw that Fildor's observation is spot on. The `Radar` class has no business messing with the UI. It is (or should be) a stateful provider of the service: asynchronous downloading and processing of a set of images/links. 
 
-The client of this service is `MainForm` and should be the one keeping track of when to call for `_radar.ExecuteAsync()`. Starting and stopping a timer is another thing that can be bad for business. Please don't use a timer. One alternate approach is an async loop that, depending on `Radar.State` will either show and update a countdown label _or_ show and update a progress bar. So, `MainForm` needs to know _when_ `Radar.State` changes and `Radar.Progress` if the state is 'not' `RadarState.Waiting`. Both of these can be cleanly supplied using `INotifyPropertyChanged`.
+The client of this service is `MainForm`. It might make better sense as the owner of the progress and countdown UI elements for it to be the one keeping track of the interval and calling `Radar.ExecuteAsync()`. Starting and stopping a timer is another thing that can be bad for business. Please don't use a timer. One alternate approach is an async loop that, depending on `Radar.State` will either show and update a countdown label _or_ show and update a progress bar. With this approach, `MainForm` only needs to know _when_ `Radar.State` or (if the state is 'not' `RadarState.Waiting`) `Radar.Progress` change.  Both of these can be cleanly supplied using `INotifyPropertyChanged`.
 
 ___
 **Main Form**
+
+Example of keeping track of the interval using an async loop.
+
+[![mainform handles radar states][1]][1]
 
 ```
 public partial class MainForm : Form
@@ -21,7 +25,35 @@ public partial class MainForm : Form
             Value = 0,
         };
     }
-    readonly ProgressBar _downloadProgress;
+    readonly ProgressBar _downloadProgress;    
+
+    DateTime _nextDownloadTime = DateTime.Now;
+    private async Task updateLabelAsync()
+    {
+        while (!Disposing)
+        {
+            if (_radar.State == RadarState.Waiting)
+            {
+                TimeSpan countdown = _nextDownloadTime - DateTime.Now + TimeSpan.FromSeconds(0.99);
+                if (countdown <= TimeSpan.FromSeconds(0.99))
+                {
+                    lblNextTimeDownload.Visible = false;
+                    // Wait for service, whether it takes a second or a year.
+                    _downloadProgress.Visible = true;
+                    await _radar.ExececuteAsync();
+                    Debug.Assert(_radar.State == RadarState.Waiting, "Expecting Radar to reset its state.");
+                    _nextDownloadTime = DateTime.Now + UpdateInterval;
+                }
+                else
+                {
+                    lblNextTimeDownload.Visible = true;
+                    _downloadProgress.Visible = false;
+                    lblNextTimeDownload.Text = "Next download in: " + countdown.ToString(@"mm\:ss");
+                    await Task.Delay(500);
+                }
+            }
+        }
+    }
     protected override void OnLoad(EventArgs e)
     {
         base.OnLoad(e);
@@ -52,33 +84,6 @@ public partial class MainForm : Form
             task.Dispose();
         };
     }
-
-    DateTime _nextDownloadTime = DateTime.Now;
-    private async Task updateLabelAsync()
-    {
-        while (!Disposing)
-        {
-            if (_radar.State == RadarState.Waiting)
-            {
-                TimeSpan countdown = _nextDownloadTime - DateTime.Now + TimeSpan.FromSeconds(0.99);
-                if (countdown <= TimeSpan.FromSeconds(0.99))
-                {
-                    lblNextTimeDownload.Visible = false;
-                    _downloadProgress.Visible = true;
-                    await _radar.ExececuteAsync();
-                    Debug.Assert(_radar.State == RadarState.Waiting, "Expecting Radar to reset its state.");
-                    _nextDownloadTime = DateTime.Now + UpdateInterval;
-                }
-                else
-                {
-                    lblNextTimeDownload.Visible = true;
-                    _downloadProgress.Visible = false;
-                    lblNextTimeDownload.Text = "Next download in: " + countdown.ToString(@"mm\:ss");
-                    await Task.Delay(500);
-                }
-            }
-        }
-    }
     Radar _radar = new Radar(Path.Combine
     (
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -88,8 +93,9 @@ public partial class MainForm : Form
 ```
 
 ___
-**Radar is a stateful provider of INotifyPropertyChanged**
+**Radar class**
 
+Modified to be a stateful service that implements INotifyPropertyChanged
 ```
 public enum RadarState 
 { 
@@ -270,3 +276,4 @@ public class Radar : INotifyPropertyChanged
 ```
 
 
+  [1]: https://i.stack.imgur.com/tAisC.png

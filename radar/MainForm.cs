@@ -247,7 +247,7 @@ namespace radar
                         // exercise the state to make sure things work,
                         State = RadarState.ImageProcessing;
                         // Mock the downloaded image
-                        await Task.Delay(10);
+                        await Task.Delay(50);
 
                         // Signal that the image has been processed
                         State = RadarState.ImageProcessed;
