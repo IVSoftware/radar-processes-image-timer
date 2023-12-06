@@ -8,7 +8,8 @@ namespace radar
 {
     public partial class MainForm : Form
     {
-#if false && DEBUG
+#if DEBUG
+        // Faster turnaround for debugging purposes.
         TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(10);
 #else
         TimeSpan UpdateInterval { get; } = TimeSpan.FromMinutes(5);
@@ -214,6 +215,10 @@ namespace radar
                 // Notify completion
                 State = RadarState.DownloadCompleted;
             }
+            // Ensure Progress has gone ti the end, and
+            // allow time to view the result.
+            Progress = 100;
+            await Task.Delay(TimeSpan.FromSeconds(1.5));
         }
 
         private async Task ProcessDownloadedImagesAsync()
@@ -259,6 +264,10 @@ namespace radar
                     Progress = (int)(i/(Links.Count * 0.01));
                 }
             });
+            // Ensure Progress has gone ti the end, and
+            // allow time to view the result.
+            Progress = 100;
+            await Task.Delay(TimeSpan.FromSeconds(1.5));
         }
     }
 }
