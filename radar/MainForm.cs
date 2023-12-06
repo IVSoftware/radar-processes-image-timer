@@ -8,7 +8,7 @@ namespace radar
 {
     public partial class MainForm : Form
     {
-#if DEBUG
+#if false && DEBUG
         // Faster turnaround for debugging purposes.
         TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(10);
 #else
@@ -38,7 +38,8 @@ namespace radar
                 {
                     lblNextTimeDownload.Visible = false;
                     _downloadProgress.Visible = true;
-                    await _radar.ExececuteAsync();
+                    // Wait for service, whether it takes a second or a year.
+                    await _radar.ExecuteAsync();
                     Debug.Assert(_radar.State == RadarState.Waiting, "Expecting Radar to reset its state.");
                     _nextDownloadTime = DateTime.Now + UpdateInterval;
                 }
@@ -134,7 +135,7 @@ namespace radar
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        public async Task ExececuteAsync()
+        public async Task ExecuteAsync()
         {
             State = RadarState.Initializing;
             PrepareLinks();
