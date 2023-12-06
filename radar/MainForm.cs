@@ -214,7 +214,7 @@ namespace radar
                 // Notify completion
                 State = RadarState.DownloadCompleted;
             }
-            // Ensure Progress has gone ti the end, and
+            // Ensure Progress has gone to the end, and
             // allow time to view the result.
             Progress = 100;
             await Task.Delay(TimeSpan.FromSeconds(1.5));
@@ -263,7 +263,7 @@ namespace radar
                     Progress = (int)(i/(Links.Count * 0.01));
                 }
             });
-            // Ensure Progress has gone ti the end, and
+            // Ensure Progress has gone to the end, and
             // allow time to view the result.
             Progress = 100;
             await Task.Delay(TimeSpan.FromSeconds(1.5));
