@@ -8,9 +8,9 @@ namespace radar
 {
     public partial class MainForm : Form
     {
-#if false && DEBUG
+#if DEBUG
         // Faster turnaround for debugging purposes.
-        TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(10);
+        TimeSpan UpdateInterval { get; } = TimeSpan.FromSeconds(15);
 #else
         TimeSpan UpdateInterval { get; } = TimeSpan.FromMinutes(5);
 #endif
@@ -161,7 +161,6 @@ namespace radar
                 }
             }
         }
-
         private void GenerateRadarLinks()
         {
             DateTime current = RoundDown(DateTime.Now, 1);
